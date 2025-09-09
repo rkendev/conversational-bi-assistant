@@ -1,0 +1,7 @@
+{
+    "adapter": "postgres",
+    "dsn": "postgresql://bi_user:bi_pass@db:5432/retail",
+    "exposed_schemas": ["public"],
+    "auth": { "type": "none" }
+  }
+  
