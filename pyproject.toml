@@ -1,23 +1,22 @@
-[project]
+[tool.poetry]
 name = "conversational-bi-assistant"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "rkendev",email = "aspjscript@hotmail.com"}
-]
+description = "Conversational BI Assistant (Postgres + MCP + Agent)"
+authors = ["rkendev <aspjscript@hotmail.com>"]
 readme = "README.md"
-requires-python = "^3.11"
-dependencies = [
-    "pandas (>=2.2.3,<3.0.0)",
-    "sqlalchemy (>=2.0.41,<3.0.0)",
-    "psycopg2-binary (>=2.9.10,<3.0.0)"
-]
 
-[tool.poetry]
+[tool.poetry.dependencies]
+# allow both 3.11 and 3.12
+python = ">=3.11,<3.13"
 
-[tool.poetry.group.dev.dependencies]
+pandas = ">=2.2.3,<3.0.0"
+sqlalchemy = ">=2.0.41,<3.0.0"
+psycopg2-binary = ">=2.9.10,<3.0.0"
+python-dateutil = ">=2.9.0"
+
+[tool.poetry.dev-dependencies]
 pytest = "^8.3.5"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core>=1.6.0,<2.0.0"]
 build-backend = "poetry.core.masonry.api"
