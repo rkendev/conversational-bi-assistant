@@ -38,6 +38,14 @@ docker compose up -d        # Postgres + pgAdmin
 curl -L https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip -o data/raw/online_retail_II.zip
 unzip data/raw/online_retail_II.zip -d data/raw/
 
+```bash
+# Prereqs: Docker, Python 3.12/3.11, Poetry 1.8+
+cp .env.example .env  # or set POSTGRES_URL
+docker compose up -d db mcp
+poetry install --no-root
+poetry run python ingest.py --csv data/raw/online_retail_II*.csv
+poetry run python agent.py
+
 # 2) Install Python deps
 poetry install
 

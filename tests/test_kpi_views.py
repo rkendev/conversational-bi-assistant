@@ -1,6 +1,11 @@
+import os
 from sqlalchemy import create_engine, text
 
-ENG = create_engine("postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail")
+DSN = os.getenv(
+    "POSTGRES_URL",
+    "postgresql+psycopg2://bi_user:bi_pass@localhost:5433/retail"
+)
+ENG = create_engine(DSN)
 
 def test_monthly_revenue_view():
     with ENG.begin() as c:
