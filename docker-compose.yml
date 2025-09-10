@@ -2,33 +2,42 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER:  bi_user
+      POSTGRES_USER: bi_user
       POSTGRES_PASSWORD: bi_pass
       POSTGRES_DB: retail
-    ports: ["5432:5432"]
-    volumes: [pg_data:/var/lib/postgresql/data]
+    ports:
+      - "5433:5432"   # <— was 5432:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      # run init SQL (roles etc.) on first boot:
+      - ./scripts:/docker-entrypoint-initdb.d:ro
 
   pgadmin:
     image: dpage/pgadmin4:8
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
-    ports: ["5050:80"]
-    depends_on: [db]
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
 
   mcp:
     image: crystaldba/postgres-mcp:0.3.0
-    depends_on: [db]
+    depends_on:
+      - db
     environment:
-      DATABASE_URI: postgresql://bi_user:bi_pass@db:5432/retail
-    # ENTRYPOINT = ["postgres-mcp"]  (built into the image)
+      # use READ-ONLY role for MCP
+      DATABASE_URI: postgresql://bi_ro:bi_ro_pass@db:5432/retail
+      API_KEY: dev_key_please_change
+    # entrypoint is built into the image; these are args
     command:
       - --access-mode
-      - unrestricted          # or restricted in prod
+      - restricted
       - --transport
-      - sse                   # turns on FastAPI + SSE on :8000
+      - sse
     ports:
-      - "4000:8000"           # host 4000 → container 8000
+      - "4000:8000"
 
 volumes:
   pg_data:

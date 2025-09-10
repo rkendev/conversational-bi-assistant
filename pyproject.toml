@@ -8,11 +8,11 @@ readme = "README.md"
 [tool.poetry.dependencies]
 # allow both 3.11 and 3.12
 python = ">=3.11,<3.13"
-
 pandas = ">=2.2.3,<3.0.0"
 sqlalchemy = ">=2.0.41,<3.0.0"
 psycopg2-binary = ">=2.9.10,<3.0.0"
 python-dateutil = ">=2.9.0"
+requests = "^2.32"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.5"
