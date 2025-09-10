@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, text
 
 DSN = os.getenv(
     "POSTGRES_URL",
-    "postgresql+psycopg2://bi_user:bi_pass@localhost:5433/retail"
+    "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail"
 )
 ENG = create_engine(DSN)
 

@@ -3,7 +3,7 @@ import os
 import sqlalchemy as sa
 import pandas as pd
 
-DSN = os.getenv("POSTGRES_URL", "postgresql+psycopg2://bi_user:bi_pass@localhost:5433/retail")
+DSN = os.getenv("POSTGRES_URL", "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail")
 engine = sa.create_engine(DSN, future=True)
 
 def q(sql: str) -> pd.DataFrame:

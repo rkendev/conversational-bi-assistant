@@ -9,7 +9,7 @@ import argparse, pathlib, pandas as pd
 from sqlalchemy import create_engine, text
 from dateutil import parser
 
-DSN = "postgresql+psycopg2://bi_user:bi_pass@localhost:5433/retail"
+DSN = "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail"
 MIGRATION_FILE = pathlib.Path("scripts/01_create_views.sql")
 
 

@@ -1,5 +1,5 @@
 import os, sqlalchemy as sa, pandas as pd
-DSN = os.getenv("POSTGRES_URL", "postgresql+psycopg2://bi_user:bi_pass@localhost:5433/retail")
+DSN = os.getenv("POSTGRES_URL", "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail")
 eng = sa.create_engine(DSN, future=True)
 
 def test_fact_sales_exists():
