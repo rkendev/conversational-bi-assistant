@@ -5,11 +5,20 @@ Run:
     poetry run python ingest.py --csv data/raw/online_retail_II*.csv
 """
 from __future__ import annotations
-import argparse, pathlib, pandas as pd
+
+from dotenv import load_dotenv
+load_dotenv()  # load variables from a local .env if present
+
+import argparse
+import os
+import pathlib
+import pandas as pd
 from sqlalchemy import create_engine, text
 from dateutil import parser
 
-DSN = "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail"
+# Use POSTGRES_URL if set; default to 5432 (CI-safe).
+# Locally, set POSTGRES_URL to ...:5433/... in your .env.
+DSN = os.getenv("POSTGRES_URL", "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail")
 MIGRATION_FILE = pathlib.Path("scripts/01_create_views.sql")
 
 
@@ -18,7 +27,7 @@ def parse_invoice_ts(col: pd.Series) -> pd.Series:
     """Parse every InvoiceDate string into a correct 2009-2011 timestamp."""
     def _one(s: str):
         dt = parser.parse(s, dayfirst=False, fuzzy=True)
-        if dt.year < 100:                # 2-digit year → 2000-2069 rule
+        if dt.year < 100:  # 2-digit year → 2000-2069 rule
             dt = dt.replace(year=dt.year + 2000)
         return dt
     return pd.to_datetime(col.apply(_one))
@@ -40,8 +49,6 @@ def load_csvs(paths: list[pathlib.Path]) -> pd.DataFrame:
 
 
 # ---------- writers ---------------------------------------------------------
-
-
 def build_dim_tables(df: pd.DataFrame, eng):
     df[["StockCode", "Description", "UnitPrice"]].drop_duplicates().to_sql(
         "dim_product", eng, if_exists="replace", index=False
@@ -58,7 +65,7 @@ def build_fact_sales(df: pd.DataFrame, eng):
             "StockCode": "stock_code",
             "CustomerID": "customer_id",
             "Quantity": "qty",
-            "UnitPrice": "unit_price",      # <- new tidy name
+            "UnitPrice": "unit_price",
         }
     )
     fact.to_sql("fact_sales", eng, if_exists="replace", index=False)
@@ -71,12 +78,10 @@ def recreate_views(eng):
 
 
 # ---------- main ------------------------------------------------------------
-
-
 def main(csv_paths: list[pathlib.Path]):
     print("reading CSVs …")
     df = load_csvs(csv_paths)
-  
+
     eng = create_engine(DSN)
 
     # drop views so tables can be replaced

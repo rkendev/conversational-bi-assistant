@@ -1,27 +1,35 @@
 #!/usr/bin/env python
 """
-Load Online Retail II → Postgres dimensional model.
+Test-friendly ingest runner that reuses the ingest helpers pattern and
+writes dim/fact tables, then recreates KPI views.
 
-Usage:
-    poetry run python ingest.py \
-        --csv data/raw/online_retail_II.csv \
-              data/raw/online_retail_II_2009_2010.csv
+Usage (local example):
+    POSTGRES_URL=postgresql+psycopg2://bi_user:bi_pass@localhost:5433/retail \
+    poetry run python tests/test_ingest.py --csv data/sample/sample.csv
 """
 from __future__ import annotations
-import argparse, pathlib, pandas as pd
+
+from dotenv import load_dotenv
+load_dotenv()  # load .env if present
+
+import argparse
+import os
+import pathlib
+import pandas as pd
 from sqlalchemy import create_engine, text
 from dateutil import parser
 
-DSN = "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail"
+# DSN: read from env; default to 5432 for CI. Locally override via POSTGRES_URL (e.g., ...:5433/...)
+DSN = os.getenv("POSTGRES_URL", "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail")
 MIGRATION_FILE = pathlib.Path("scripts/01_create_views.sql")
 
 
 # ---------- helpers ---------------------------------------------------------
 def parse_invoice_ts(col: pd.Series) -> pd.Series:
-    """Robustly parse InvoiceDate strings (2- or 4-digit years, w/ or w/o time)."""
+    """Robustly parse InvoiceDate strings (2- or 4-digit years, with/without time)."""
     def _one(s: str):
         dt = parser.parse(s, dayfirst=False, fuzzy=True)
-        if dt.year < 100:                       # 2-digit year → 2000-2069
+        if dt.year < 100:  # 2-digit year → 2000-2069
             dt = dt.replace(year=dt.year + 2000)
         return dt
     return pd.to_datetime(col.apply(_one))
@@ -82,6 +90,7 @@ def main(csv_paths: list[pathlib.Path]):
 
     eng = create_engine(DSN)
 
+    # drop views so tables can be replaced
     with eng.begin() as conn:
         conn.execute(text(
             "DROP VIEW IF EXISTS vw_top_customers, vw_monthly_revenue CASCADE;"
@@ -95,8 +104,7 @@ def main(csv_paths: list[pathlib.Path]):
 
     with eng.begin() as conn:
         conn.execute(text(
-            "CREATE INDEX IF NOT EXISTS ix_fact_sales_ts "
-            "ON fact_sales(invoice_ts);"
+            "CREATE INDEX IF NOT EXISTS ix_fact_sales_ts ON fact_sales(invoice_ts);"
         ))
 
     recreate_views(eng)

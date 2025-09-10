@@ -1,5 +1,14 @@
-import os, sqlalchemy as sa, pandas as pd
-DSN = os.getenv("POSTGRES_URL", "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail")
+from dotenv import load_dotenv
+load_dotenv()  # read POSTGRES_URL from .env if present
+
+import os
+import sqlalchemy as sa
+import pandas as pd
+
+DSN = os.getenv(
+    "POSTGRES_URL",
+    "postgresql+psycopg2://bi_user:bi_pass@localhost:5432/retail"  # CI-safe default
+)
 eng = sa.create_engine(DSN, future=True)
 
 def test_fact_sales_exists():
@@ -10,5 +19,5 @@ def test_fact_sales_exists():
 def test_monthly_revenue_view():
     with eng.begin() as c:
         df = pd.read_sql_query("SELECT * FROM vw_monthly_revenue ORDER BY month LIMIT 3", c)
-    assert {"month","revenue"}.issubset(df.columns)
+    assert {"month", "revenue"}.issubset(df.columns)
     assert len(df) >= 1
